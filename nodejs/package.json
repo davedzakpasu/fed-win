@@ -1,0 +1,28 @@
+{
+  "name": "file-encoding-detector",
+  "version": "1.0.0",
+  "description": "Detect the character encoding of every file in a folder.",
+  "type": "module",
+  "bin": {
+    "detect-encoding": "./bin/detect.js"
+  },
+  "main": "./lib/detector.js",
+  "scripts": {
+    "start": "node bin/detect.js",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=tests/"
+  },
+  "keywords": ["encoding", "charset", "detection", "cli", "files"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "chardet": "^2.0.0",
+    "commander": "^12.0.0",
+    "fast-glob": "^3.3.2"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}

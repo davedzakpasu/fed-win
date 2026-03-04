@@ -2,15 +2,22 @@
 
 > Detect the character encoding of every file in a folder — your way.
 
+**CI**\
 [![Python](https://github.com/davedzakpasu/fed-win/actions/workflows/python.yml/badge.svg)](https://github.com/davedzakpasu/fed-win/actions/workflows/python.yml)
 [![PowerShell](https://github.com/davedzakpasu/fed-win/actions/workflows/powershell.yml/badge.svg)](https://github.com/davedzakpasu/fed-win/actions/workflows/powershell.yml)
 [![Node.js](https://github.com/davedzakpasu/fed-win/actions/workflows/nodejs.yml/badge.svg)](https://github.com/davedzakpasu/fed-win/actions/workflows/nodejs.yml)
 [![Electron](https://github.com/davedzakpasu/fed-win/actions/workflows/electron.yml/badge.svg)](https://github.com/davedzakpasu/fed-win/actions/workflows/electron.yml)
+
+**Release**\
+[![Latest Release](https://img.shields.io/github/v/release/davedzakpasu/fed-win?label=latest&color=blue)](https://github.com/davedzakpasu/fed-win/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/davedzakpasu/fed-win/total?color=brightgreen)](https://github.com/davedzakpasu/fed-win/releases)
+
+**Stack**\
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)](./python/)
+[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](./nodejs/)
+[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-5391FE?logo=powershell&logoColor=white)](./powershell/)
+[![Electron](https://img.shields.io/badge/Electron-40%2B-47848F?logo=electron&logoColor=white)](./electron/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python)](./python/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green?logo=node.js)](./nodejs/)
-[![PowerShell](https://img.shields.io/badge/PowerShell-5.1%2B-blue?logo=powershell)](./powershell/)
-[![Electron](https://img.shields.io/badge/Electron-40%2B-47848F?logo=electron)](./electron/)
 
 This repository provides **four independent implementations** of the same tool, each targeting a different stack and user profile. Pick the one that fits your environment, workflow, or preference.
 

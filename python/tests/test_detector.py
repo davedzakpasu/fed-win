@@ -82,7 +82,7 @@ class TestDetectFile:
     def test_latin1_file(self, tmp_folder: Path) -> None:
         f = tmp_folder / "latin1.txt"
         # Write bytes that are valid ISO-8859-1 but not valid UTF-8
-        f.write_bytes("Héllo Wörld — café résumé".encode("iso-8859-1"))
+        f.write_bytes("Héllo Wörld - café résumé".encode("iso-8859-1"))
         result = detect_file(f)
         assert result.error is None
         assert result.encoding is not None

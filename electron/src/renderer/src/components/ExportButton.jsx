@@ -20,7 +20,8 @@ export default function ExportButton({ results, disabled }) {
       ? [{ name: 'CSV files', extensions: ['csv'] }]
       : [{ name: 'JSON files', extensions: ['json'] }];
 
-    const timestamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
+    const now = new Date();
+    const timestamp = now.getFullYear().toString() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0') + String(now.getSeconds()).padStart(2,'0');
     const defaultName = `encoding_results_${timestamp}.${ext}`;
 
     const filePath = await window.api.saveFileDialog(defaultName, filters);

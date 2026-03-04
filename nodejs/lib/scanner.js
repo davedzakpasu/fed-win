@@ -1,23 +1,30 @@
 /**
  * @file scanner.js
- * Folder walking and file collection using fast-glob.
+ * Folder walking and file collection using Node.js built-in fs/promises.
+ * No third-party dependencies.
  */
 
-import { stat } from 'fs/promises';
-import { resolve, relative } from 'path';
-import fg from 'fast-glob';
+import { readdir, stat } from "fs/promises";
+import { join, resolve } from "path";
 
 /** Directories excluded from scanning by default (see SPEC §5). */
 const EXCLUDED_DIRS = new Set([
-  '.git', '.hg', '.svn', 'node_modules', '__pycache__',
-  '.mypy_cache', '.tox', '.venv', 'venv',
+  ".git",
+  ".hg",
+  ".svn",
+  "node_modules",
+  "__pycache__",
+  ".mypy_cache",
+  ".tox",
+  ".venv",
+  "venv",
 ]);
 
 /** Filenames excluded by default. */
-const EXCLUDED_FILES = new Set(['Thumbs.db', 'desktop.ini', '.DS_Store']);
+const EXCLUDED_FILES = new Set(["Thumbs.db", "desktop.ini", ".DS_Store"]);
 
 /** File extensions excluded by default. */
-const EXCLUDED_EXTS = new Set(['.pyc', '.pyo']);
+const EXCLUDED_EXTS = new Set([".pyc", ".pyo"]);
 
 /**
  * @typedef {Object} ScanOptions
@@ -46,64 +53,67 @@ export async function collectFiles(rootDir, opts = {}) {
 
   const absRoot = resolve(rootDir);
 
-  // Build fast-glob pattern
-  const depth = recursive ? Infinity : 1;
-  const pattern = recursive ? '**/*' : '*';
-
   const extSet = extensions
-    ? new Set(extensions.map(e => (e.startsWith('.') ? e.toLowerCase() : `.${e.toLowerCase()}`)))
+    ? new Set(
+        extensions.map((e) =>
+          e.startsWith(".") ? e.toLowerCase() : `.${e.toLowerCase()}`,
+        ),
+      )
     : null;
 
-  // fast-glob options
-  const entries = await fg(pattern, {
-    cwd: absRoot,
-    onlyFiles: true,
-    dot: includeHidden,           // dot=true includes hidden files
-    deep: depth,
-    followSymbolicLinks: false,
-    absolute: true,
-  });
+  const results = [];
 
-  // Apply remaining filters
-  const filtered = [];
-
-  for (const filePath of entries) {
-    const relParts = relative(absRoot, filePath).split(/[\\/]/);
-
-    // Skip excluded directories anywhere in the path
-    if (relParts.slice(0, -1).some(part => EXCLUDED_DIRS.has(part))) continue;
-
-    // Skip hidden dirs in path (when includeHidden is false)
-    if (!includeHidden && relParts.slice(0, -1).some(p => p.startsWith('.'))) continue;
-
-    const filename = relParts[relParts.length - 1];
-
-    // Skip excluded filenames
-    if (EXCLUDED_FILES.has(filename)) continue;
-
-    // Get extension
-    const dotIdx = filename.lastIndexOf('.');
-    const ext = dotIdx >= 0 ? filename.slice(dotIdx).toLowerCase() : '';
-
-    // Skip excluded extensions
-    if (EXCLUDED_EXTS.has(ext)) continue;
-
-    // Apply extension filter
-    if (extSet && !extSet.has(ext)) continue;
-
-    // Apply size filters
-    if (minSize > 0 || maxSize !== null) {
-      try {
-        const info = await stat(filePath);
-        if (info.size < minSize) continue;
-        if (maxSize !== null && info.size > maxSize) continue;
-      } catch {
-        // Include the file anyway; detector will handle the error
-      }
+  async function walk(dir) {
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
     }
 
-    filtered.push(filePath);
+    for (const entry of entries) {
+      const fullPath = join(dir, entry.name);
+
+      if (entry.isSymbolicLink()) continue;
+
+      if (entry.isDirectory()) {
+        if (!recursive) continue;
+        if (!includeHidden && entry.name.startsWith(".")) continue;
+        if (EXCLUDED_DIRS.has(entry.name)) continue;
+        await walk(fullPath);
+        continue;
+      }
+
+      if (!entry.isFile()) continue;
+
+      // Hidden files
+      if (!includeHidden && entry.name.startsWith(".")) continue;
+
+      // Excluded filenames
+      if (EXCLUDED_FILES.has(entry.name)) continue;
+
+      // Extension
+      const dotIdx = entry.name.lastIndexOf(".");
+      const ext = dotIdx >= 0 ? entry.name.slice(dotIdx).toLowerCase() : "";
+
+      if (EXCLUDED_EXTS.has(ext)) continue;
+      if (extSet && !extSet.has(ext)) continue;
+
+      // Size filters
+      if (minSize > 0 || maxSize !== null) {
+        try {
+          const info = await stat(fullPath);
+          if (info.size < minSize) continue;
+          if (maxSize !== null && info.size > maxSize) continue;
+        } catch {
+          // include anyway; detectFile will handle the error
+        }
+      }
+
+      results.push(fullPath);
+    }
   }
 
-  return filtered.sort();
+  await walk(absRoot);
+  return results.sort();
 }

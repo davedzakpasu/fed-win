@@ -73,7 +73,7 @@ $rootPath = $resolvedFolder.Path
 
 $excludedDirs = @('.git', '.hg', '.svn', 'node_modules', '__pycache__', '.mypy_cache', '.tox', '.venv', 'venv')
 $excludedFiles = @('Thumbs.db', 'desktop.ini', '.DS_Store')
-$excludedExts  = @('.pyc', '.pyo')
+$excludedExts = @('.pyc', '.pyo')
 
 # Normalise requested extensions
 $extFilter = @()
@@ -146,15 +146,15 @@ if ($files.Count -eq 0) {
     exit 0
 }
 
-Write-Host "Scanning $($files.Count) file(s) in $rootPath …" -ForegroundColor DarkGray
+Write-Host "Scanning $($files.Count) file(s) in $rootPath ..." -ForegroundColor DarkGray
 
 # ---------------------------------------------------------------------------
 # Detect encodings
 # ---------------------------------------------------------------------------
 
-$results = $files | ForEach-Object {
-    Get-FileEncoding -FilePath $_.FullName
-}
+$results = @($files | ForEach-Object {
+        Get-FileEncoding -FilePath $_.FullName
+    })
 
 # ---------------------------------------------------------------------------
 # Output

@@ -8,43 +8,71 @@
  *   npx file-encoding-detector <folder> [options]
  */
 
-import { resolve, join } from 'path';
-import { existsSync, statSync } from 'fs';
-import { program } from 'commander';
-import chalk from 'chalk';
+import chalk from "chalk";
+import { program } from "commander";
+import { existsSync, statSync } from "fs";
+import { resolve } from "path";
 
-import { collectFiles } from '../lib/scanner.js';
-import { detectFile } from '../lib/detector.js';
-import { printConsole, exportCsv, exportJson } from '../lib/exporter.js';
+import { detectFile } from "../lib/detector.js";
+import { exportCsv, exportJson, printConsole } from "../lib/exporter.js";
+import { collectFiles } from "../lib/scanner.js";
 
 // ---------------------------------------------------------------------------
 // CLI definition
 // ---------------------------------------------------------------------------
 
 program
-  .name('detect-encoding')
-  .description('Detect the character encoding of every file in a folder.')
-  .version('1.0.0')
-  .argument('<folder>', 'Path to the folder to scan')
-  .option('-r, --recursive',         'Scan subdirectories recursively', false)
-  .option('-o, --output <format>',   'Output format: console, csv, json', 'console')
-  .option('-f, --file <path>',       'Destination file for CSV/JSON export (auto-named if omitted)')
-  .option('--hidden',                'Include hidden files and system folders', false)
-  .option('--ext <exts...>',         'Only scan files with given extension(s), e.g. --ext .txt .csv')
-  .option('--min-size <bytes>',      'Skip files smaller than N bytes', (v) => parseInt(v, 10), 0)
-  .option('--max-size <bytes>',      'Skip files larger than N bytes', (v) => parseInt(v, 10), null)
-  .option('-c, --concurrency <n>',   'Number of files to process in parallel', (v) => parseInt(v, 10), 10)
-  .addHelpText('after', `
+  .name("detect-encoding")
+  .description("Detect the character encoding of every file in a folder.")
+  .version("1.0.0")
+  .argument("<folder>", "Path to the folder to scan")
+  .option("-r, --recursive", "Scan subdirectories recursively", false)
+  .option(
+    "-o, --output <format>",
+    "Output format: console, csv, json",
+    "console",
+  )
+  .option(
+    "-f, --file <path>",
+    "Destination file for CSV/JSON export (auto-named if omitted)",
+  )
+  .option("--hidden", "Include hidden files and system folders", false)
+  .option(
+    "--ext <exts...>",
+    "Only scan files with given extension(s), e.g. --ext .txt .csv",
+  )
+  .option(
+    "--min-size <bytes>",
+    "Skip files smaller than N bytes",
+    (v) => parseInt(v, 10),
+    0,
+  )
+  .option(
+    "--max-size <bytes>",
+    "Skip files larger than N bytes",
+    (v) => parseInt(v, 10),
+    null,
+  )
+  .option(
+    "-c, --concurrency <n>",
+    "Number of files to process in parallel",
+    (v) => parseInt(v, 10),
+    10,
+  )
+  .addHelpText(
+    "after",
+    `
 Examples:
   node detect.js C:\\Users\\me\\documents
   node detect.js ./src --recursive
   node detect.js ./data --ext .csv .txt --output csv
   node detect.js ./project --recursive --output json --file results.json
-`);
+`,
+  );
 
 program.parse();
 
-const opts   = program.opts();
+const opts = program.opts();
 const folder = program.args[0];
 
 // ---------------------------------------------------------------------------
@@ -66,9 +94,13 @@ if (!statSync(absFolder).isDirectory()) {
 // Validate output format
 // ---------------------------------------------------------------------------
 
-const validFormats = ['console', 'csv', 'json'];
+const validFormats = ["console", "csv", "json"];
 if (!validFormats.includes(opts.output)) {
-  console.error(chalk.red(`error: invalid output format "${opts.output}". Choose: console, csv, json`));
+  console.error(
+    chalk.red(
+      `error: invalid output format "${opts.output}". Choose: console, csv, json`,
+    ),
+  );
   process.exit(1);
 }
 
@@ -77,8 +109,16 @@ if (!validFormats.includes(opts.output)) {
 // ---------------------------------------------------------------------------
 
 function autoOutputPath(fmt) {
-  const ts   = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 15);
-  const stem = absFolder.split(/[\\/]/).pop() || 'scan';
+  const now = new Date();
+  const ts =
+    now.getFullYear().toString() +
+    String(now.getMonth() + 1).padStart(2, "0") +
+    String(now.getDate()).padStart(2, "0") +
+    "_" +
+    String(now.getHours()).padStart(2, "0") +
+    String(now.getMinutes()).padStart(2, "0") +
+    String(now.getSeconds()).padStart(2, "0");
+  const stem = absFolder.split(/[\\/]/).pop() || "scan";
   return `${stem}_encoding_${ts}.${fmt}`;
 }
 
@@ -117,30 +157,32 @@ async function withConcurrency(items, fn, limit) {
 (async () => {
   // Collect files
   const files = await collectFiles(absFolder, {
-    recursive:     opts.recursive,
+    recursive: opts.recursive,
     includeHidden: opts.hidden,
-    extensions:    opts.ext ?? null,
-    minSize:       opts.minSize,
-    maxSize:       opts.maxSize,
+    extensions: opts.ext ?? null,
+    minSize: opts.minSize,
+    maxSize: opts.maxSize,
   });
 
   if (files.length === 0) {
-    console.error(chalk.yellow('No files found matching the given criteria.'));
+    console.error(chalk.yellow("No files found matching the given criteria."));
     process.exit(0);
   }
 
-  process.stderr.write(chalk.dim(`Scanning ${files.length} file(s) in ${absFolder} …\n`));
+  process.stderr.write(
+    chalk.dim(`Scanning ${files.length} file(s) in ${absFolder} …\n`),
+  );
 
   // Detect encodings (with concurrency limit)
   const results = await withConcurrency(files, detectFile, opts.concurrency);
 
   // Output
-  if (opts.output === 'console') {
+  if (opts.output === "console") {
     printConsole(results, absFolder, chalk);
   }
 
-  if (opts.output === 'csv') {
-    const outPath = opts.file ?? autoOutputPath('csv');
+  if (opts.output === "csv") {
+    const outPath = opts.file ?? autoOutputPath("csv");
     try {
       await exportCsv(results, outPath, absFolder);
     } catch (err) {
@@ -150,8 +192,8 @@ async function withConcurrency(items, fn, limit) {
     printConsole(results, absFolder, chalk);
   }
 
-  if (opts.output === 'json') {
-    const outPath = opts.file ?? autoOutputPath('json');
+  if (opts.output === "json") {
+    const outPath = opts.file ?? autoOutputPath("json");
     try {
       await exportJson(results, outPath, absFolder);
     } catch (err) {

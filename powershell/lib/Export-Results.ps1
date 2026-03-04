@@ -22,13 +22,13 @@ function Write-ResultsTable {
         [string]$RootPath
     )
 
-    $colFile  = 50
-    $colEnc   = 14
-    $colConf  = 12
-    $colSize  = 12
+    $colFile = 50
+    $colEnc = 14
+    $colConf = 12
+    $colSize = 12
 
     $header = '{0,-50}  {1,-14}  {2,-12}  {3,12}' -f 'File', 'Encoding', 'Confidence', 'Size'
-    $sep    = '{0}  {1}  {2}  {3}' -f ('-' * $colFile), ('-' * $colEnc), ('-' * $colConf), ('-' * $colSize)
+    $sep = '{0}  {1}  {2}  {3}' -f ('-' * $colFile), ('-' * $colEnc), ('-' * $colConf), ('-' * $colSize)
 
     Write-Host $header
     Write-Host $sep
@@ -42,9 +42,9 @@ function Write-ResultsTable {
             $rel = [char]0x2026 + $rel.Substring($rel.Length - ($colFile - 1))
         }
 
-        $enc   = if ($r.Error) { 'ERROR' } elseif ($r.Encoding) { $r.Encoding } else { 'unknown' }
-        $conf  = Format-Confidence -Result $r
-        $size  = Format-Size -Bytes $r.SizeBytes
+        $enc = if ($r.Error) { 'ERROR' } elseif ($r.Encoding) { $r.Encoding } else { 'unknown' }
+        $conf = Format-Confidence -Result $r
+        $size = Format-Size -Bytes $r.SizeBytes
 
         # Colour-code errors
         if ($r.Error) {
@@ -55,10 +55,10 @@ function Write-ResultsTable {
         }
     }
 
-    $errorCount = ($Results | Where-Object { $_.Error }).Count
+    $errorCount = @($Results | Where-Object { $_.Error }).Count
     Write-Host $sep
     Write-Host ""
-    Write-Host "$($Results.Count) file(s) scanned. $errorCount error(s)."
+    Write-Host "$(@($Results).Count) file(s) scanned. $errorCount error(s)."
 }
 
 
@@ -101,7 +101,7 @@ function Export-ResultsCsv {
 
     if ($PSCmdlet.ShouldProcess($OutputPath, 'Export CSV')) {
         $rows | Export-Csv -LiteralPath $OutputPath -NoTypeInformation -Encoding UTF8
-        Write-Host "CSV exported → $OutputPath" -ForegroundColor Cyan
+        Write-Host "CSV exported -> $OutputPath" -ForegroundColor Cyan
     }
 }
 
@@ -145,7 +145,7 @@ function Export-ResultsJson {
 
     if ($PSCmdlet.ShouldProcess($OutputPath, 'Export JSON')) {
         $data | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $OutputPath -Encoding UTF8
-        Write-Host "JSON exported → $OutputPath" -ForegroundColor Cyan
+        Write-Host "JSON exported -> $OutputPath" -ForegroundColor Cyan
     }
 }
 
@@ -165,14 +165,14 @@ function Get-RelativePath {
 
 function Format-Confidence {
     param ([object]$Result)
-    if ($Result.Error)                  { return 'ERROR' }
-    if ($null -eq $Result.Confidence)   { return [char]0x2014 }  # em dash
+    if ($Result.Error) { return 'ERROR' }
+    if ($null -eq $Result.Confidence) { return '-' }
     return '{0:P0}' -f $Result.Confidence
 }
 
 function Format-Size {
     param ([long]$Bytes)
-    if ($Bytes -lt 1KB)  { return "$Bytes B" }
-    if ($Bytes -lt 1MB)  { return '{0:N1} KB' -f ($Bytes / 1KB) }
+    if ($Bytes -lt 1KB) { return "$Bytes B" }
+    if ($Bytes -lt 1MB) { return '{0:N1} KB' -f ($Bytes / 1KB) }
     return '{0:N1} MB' -f ($Bytes / 1MB)
 }

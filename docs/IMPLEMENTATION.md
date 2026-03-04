@@ -108,7 +108,7 @@ powershell/
 | `chardet` | Encoding detection |
 | `commander` | CLI argument parsing |
 | `chalk` | Terminal color output |
-| `fast-glob` | Fast recursive file globbing |
+
 
 ### File structure
 ```
@@ -140,7 +140,7 @@ nodejs/
 
 ### Environment
 - Node.js `18+`
-- Electron `28+`
+- Electron `40+`
 - React `18+`
 - Build tool: `Vite` with `electron-vite`
 
@@ -164,6 +164,8 @@ electron/
 ├── README.md
 ├── package.json
 ├── electron.vite.config.js
+├── tailwind.config.js
+├── postcss.config.js
 └── src/
     ├── main/
     │   ├── index.js        # Electron app entry
@@ -227,7 +229,7 @@ electron/
 Each variant should include at minimum:
 - A `tests/` folder (or equivalent)
 - Tests covering: valid UTF-8 file, ISO-8859-1 file, empty file, unreadable file, recursive scan
-- PowerShell: use `Pester`; Python: use `pytest`; Node.js + Electron: use `vitest` or `jest`
+- PowerShell: use `Pester`; Python: use `pytest`; Node.js + Electron: use `vitest`
 
 ### README per variant
 

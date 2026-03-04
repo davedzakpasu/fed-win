@@ -11,21 +11,37 @@ on:
             - ".github/workflows/powershell.yml"
 
 jobs:
-    test:
-        name: Test (PowerShell ${{ matrix.ps-version }})
+    test-ps51:
+        name: Test (PowerShell 5.1)
         runs-on: windows-latest
-        strategy:
-            matrix:
-                ps-version: ["5.1", "7.x"]
 
         steps:
             - uses: actions/checkout@v4
 
-            - name: Set up PowerShell 7 (if needed)
-              if: matrix.ps-version == '7.x'
-              uses: actions/setup-powershell@v1
-              with:
-                  powershell-version: ${{ matrix.ps-version }}
+            - name: Install Pester
+              shell: powershell
+              run: |
+                  Install-Module -Name Pester -Force -Scope CurrentUser -SkipPublisherCheck
+
+            - name: Run Pester tests
+              shell: powershell
+              working-directory: powershell
+              run: |
+                  $result = Invoke-Pester -Path ./tests/ -Output Detailed -PassThru
+                  if ($result.FailedCount -gt 0) { exit 1 }
+
+            - name: Smoke test CLI
+              shell: powershell
+              working-directory: powershell
+              run: |
+                  .\Detect-FileEncoding.ps1 -Folder . -Recursive
+
+    test-ps7:
+        name: Test (PowerShell 7)
+        runs-on: windows-latest
+
+        steps:
+            - uses: actions/checkout@v4
 
             - name: Install Pester
               shell: pwsh
@@ -36,9 +52,8 @@ jobs:
               shell: pwsh
               working-directory: powershell
               run: |
-                  Invoke-Pester -Path ./tests/ -Output Detailed -PassThru | ForEach-Object {
-                    if ($_.FailedCount -gt 0) { exit 1 }
-                  }
+                  $result = Invoke-Pester -Path ./tests/ -Output Detailed -PassThru
+                  if ($result.FailedCount -gt 0) { exit 1 }
 
             - name: Smoke test CLI
               shell: pwsh
